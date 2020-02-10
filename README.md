@@ -1,2 +1,2 @@
 # EPOPT
-Energy plan soft-link to GENeric OPTimizer
+EnergyPLAN soft-link to GENeric OPTimizer
