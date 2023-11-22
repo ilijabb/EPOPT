@@ -1,0 +1,20 @@
+GenOpt(R) Version 3.1.0, December 8, 2011
+
+Lawrence Berkeley National Laboratory
+http://simulationresearch.lbl.gov
+Michael Wetter, MWetter@lbl.gov
+
+GenOpt Copyright (c) 1998-2011, The Regents of the
+University of California, through Lawrence Berkeley
+National Laboratory (subject to receipt of any 
+required approvals from the U.S. Dept. of Energy).
+All rights reserved.
+_______________________________________________________________
+
+Results of GPSHookeJeeves algorithm
+Start time: Mon Mar 02 11:45:07 CET 2015
+
+All Iterations
+
+
+Simulation Number	Main Iteration	Sub Iteration	Step Number	Ccon	Ctotal	gCO2(x)	gRES(x)	gTPES(x)	TPES	savings	ERES	BMS	FxRES	QCO2	Cinvest	TVC	FOC	QCO2cor	TPEScor	broj	WIND	PV	SHPP	SavingCoalRef	SwitchCoalGas	SwitchCoalBiomass	SavingHeatRef	SavingHeatNetw	IndustralCHP	SwitchEHDH	SavingElecCable	SwitchElecSolarWH	FlexOneDay	SavingGasInd	ElecPHEVSmart	BioDiesel	newTPPsize	oldTPPsize	newCHPsize	oldCHPsize	StorageP	Transmission

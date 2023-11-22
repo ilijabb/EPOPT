@@ -1,0 +1,480 @@
+/* GenOpt example command file
+   MWetter@lbl.gov, 06/18/2003
+changed for EnergyPLAN IBB
+*/
+
+
+//RES vector [WIND, PV, SHPP]
+Vary{
+  Parameter{   // increase wind power in MW
+  Name    = WIND; //input_RES3_capacity=
+  Min     = 0;
+  Ini     =     0;
+  Max     =   4000;
+  Step    =    4000;
+    //Values = "500, 1000, 1500";
+ }
+  Parameter{   // increase PV power in MW
+  Name    = PV; //input_RES4_capacity=
+  Min     = 0;
+  Ini     =     0;
+  Max     =   600;
+  Step    =    600;
+    //Values = "500, 1000, 1500";
+ } 
+ 
+Parameter{   // increase SHPP power in MW
+  Name    = SHPP; //input_RES2_capacity=
+  Min     = 0;
+  Ini     =     0;
+  Max     =   750;
+  Step    =    750;
+    //Values = "500, 1000, 1500";
+ } 
+ 
+ 
+//EE vector [TS, FS]
+
+//Savings vector
+
+// reduce coal consumption in the household with FS and TS in TWh 
+Function{
+	Name = DheatHHcoal; //demand in heating sector in households in coal
+	Function = "subtract(2.53534 ,%SheatHHcoal%)"; // input_fuel_Households[1]=
+	}
+	
+Function{   //savings in heating sector in household in coal
+    Name    = SheatHHcoal; 
+    Function = "add (%SavingCoalRef%, %SwitchCoalGas%, %SwitchCoalBiomass%)";      
+       	}
+		
+Parameter{ // saving coal by refurbishment
+	Name = SavingCoalRef; 
+	Min = 0;
+	Ini = 0;
+	Max = 0.45;
+	Step = 0.45;
+	}
+Parameter{ // coal switch to gas
+	Name = SwitchCoalGas; 
+	Min = 0;
+	Ini = 0;
+	Max = 0.5;
+	Step = 0.5;
+	}
+Parameter{ // coal switch to biomass 
+	Name = SwitchCoalBiomass; 
+	Min = 0;
+	Ini = 0;
+	Max = 0.5;
+	Step = 0.5;
+	}		
+Function{
+	Name = CinvEE1; //investment cost for coal savings
+	Function = "add (multiply( %SavingCoalRef%, 445 ),multiply( %SwitchCoalGas%, 149 ),multiply( %SwitchCoalBiomass%, 348))";
+	}
+/*Function{
+	Name = OutputEE1; 
+	Function = "reduce coal consumption";
+	}	*/
+Function{
+	Name = PeriodEE1; 
+	Function = "30";
+	}
+Function{
+	Name = FOMEE1; 
+	Function = "2";
+	}	
+	
+Function{ //additional gas demand after switch
+	Name = DemHHgas; //input_fuel_Households[3]=
+	Function = "add(4.21006, %SwitchCoalGas%)"; //add to BAU value
+	}
+Function{ //additional biomass demand after switch
+	Name = DemHHbiomass; //input_fuel_Households[4]=
+	Function = "add (11.5137, %SwitchCoalBiomass%)";
+	}
+	//
+
+	
+// reduce the district heating demand in TWh
+	Function{   
+    Name    = DheatDHIII; //unosimo  iz input_dh_ann_gr3=
+	Function = "add (%SwitchEHDH%, subtract(12.9093, %SheatDHIII%))"; //dodaje se elektricno grejanje 
+   	}
+Function{ //total demand side heat savings
+	Name = SheatDHIII; 
+	Function = "add (%SavingHeatRef%, %SavingHeatNetw%)";
+	}
+Parameter{ 
+	Name = SavingHeatRef; // saving heat by MFH refurbishment
+	Min = 0;
+	Ini = 0;
+	Max = 0.5;
+	Step = 0.5;
+	}
+Parameter{ // saving heat by network reconstruction
+	Name = SavingHeatNetw; 
+	Min = 0;
+	Ini = 0;
+	Max = 1;
+	Step = 1;
+	}
+Parameter{ // producing both heat and electricity in TWh by industrial CHP
+	Name = IndustralCHP; //input_cshp_el_gr3= i input_cshp_th_gr3=
+	Min = 0;
+	Ini = 0;
+	Max = 1;
+	Step = 1;
+	}
+Function{ //cost of heat saving measures
+	Name = CinvEE2; //input_Inv_Various2=
+	Function = "add (multiply( %SavingHeatRef%, 2000 ),multiply( %SavingHeatNetw%, 1000 ),multiply( %IndustralCHP%, 1000))";
+	}
+	
+	
+	
+Function{    //reduce the electricity demand in TWh
+    Name    = Delec; //  Input_el_demand_Twh=
+	Function = "subtract(45.71013, %Selec%)"; 
+     	}
+Function{
+	Name = Selec; 
+	Function = "add (%SwitchEHDH%, %SavingElecCable%)";
+	}
+/*Function{
+	Name = SavingDG; // TWh/MW instalisanog DG PV usled smanjenja gubitaka
+	Function = multiply(0.000017402,%PV%);
+	}*/
+Function{
+	Name = CinvEE3; 
+	Function = "add (multiply( %SwitchEHDH%, 300 ), multiply( %SavingElecCable%, 100 ))";
+	}
+
+Parameter {
+	Name = SwitchEHDH;
+	Min     = 0; //biramo koliko ce TWh elektricnog grejanja preci na district heating
+    Ini     = 0;
+    Max     = 2;
+    Step    = 2;
+}
+
+Parameter { //save electricity by grid uprgade
+	Name = SavingElecCable;
+	Min     = 0; //biramo koliko ce TWh biti smanjena potrosnja elektricne energije zbog promene preseka kablova
+    Ini     = 0;
+    Max     = 1;
+    Step    = 1;
+}	
+
+
+Function{ //to be subtracted from electricity demand for electric heating and heat pumps in individual sector
+	Name = SubstrEHandHP; //Input_El_demand_elec_heating_share=
+	Function = "subtract (6.8, %SwitchEHDH%)";
+	}
+
+//input_HH_EB_heat=
+//
+Function{
+	Name = DemEH; 
+	Function = "subtract (2, %SwitchEHDH%)";
+	}
+	
+	
+Parameter { //switch electric to solar water heating
+	Name = SwitchElecSolarWH; //input_HH_HP_solar=
+	Min     = 0; //biramo koliko ce TWh biti input solarnog grejaca solarnog grejaca tople vode da se smanji potrosnja elektricne 
+    Ini     = 0; //troskovi se dodaju preko inv troskova solarnih kolektora, 
+    Max     = 4.8;
+    Step    = 4.8;
+}
+
+//flexible demand
+
+Parameter {
+	Name = FlexOneDay; //input_flexible_day_TWh=
+	Min     = 0; //biramo koliko ce TWh biti fleksibilna potrosnja elektricne energije na jedan dan 
+    Ini     = 0; // 
+    Max     = 4.5;
+    Step    = 4.5;
+}
+
+Function{
+	Name = MaxFlexOneDay;  //input_flexible_day_max= 
+	Function = "multiply (172, %FlexOneDay%)"; //racunamo koliko ce MW biti fleksibilno maksimalno u toku dana ako je jedan TWh/a raspolozivost 2/3 tokom godine
+	}
+
+Function{
+	Name = CinvFlex; //input_Inv_Various4=
+	Function = "multiply( %FlexOneDay%, 5)";
+	}
+/*Function{
+	Name = OutputFlex; 
+	Function = "Flexible demand costs"; //Various4Text=
+	}	*/
+Function{
+	Name = PeriodFlex; 
+	Function = "15";
+	}
+Function{
+	Name = FOMFlex; 
+	Function = "0";
+	}
+	
+// /*EffAppElecHH
+// EffAppHeatHH
+// EffEqElecIND*/
+
+//EffEqGasIND savings
+
+Parameter {
+	Name = SavingGasInd;
+	Min     = 0; //biramo koliko ce TWh biti smanjena potrosnja gasa u industriji zbog uvodjenja efikasnijih uredjaja equipment
+    Ini     = 0;
+    Max     = 3.45;
+    Step    = 3.45;
+}	
+
+Function{ // save gas in industry
+	Name = DemGasIND; //input_fuel_CSHP[3]=
+	Function = "subtract(11.52533, %SavingGasInd%)";
+	}
+	
+Function{
+	Name = Sgas; 
+	Function = "add(0, %SavingGasInd%)"; //ovde kasnije dodati i druge ustede gasa na strani potrosnje po potrebi
+	}
+	
+Function{
+	Name = CinvEE4; //input_Inv_Various5=
+	Function = "multiply( %SavingGasInd%, 154 )";
+	}
+/*Function{
+	Name = OutputEE4; //
+	Function = "Efficient gas equipment";
+	}	*/
+Function{
+	Name = PeriodEE4; 
+	Function = "15";
+	}
+Function{
+	Name = FOMEE4; 
+	Function = "0";
+	}
+	
+//transport
+Parameter { //switch diesel to electric car
+	Name = ElecPHEVSmart; //input_transport_TWh_V2G=
+	Min     = 0; //biramo koliko ce se TWh/a biti korisceno umesto postojecih dizel 2TWh dizel = 0.6 TWh 
+    Ini     = 0;
+    Max     = 1;
+    Step    = 1;
+}
+
+Function{
+	Name = DieselDem; // koliko je TWh/a smanjena potrosnja dizela zbog prelaska na PHEV
+	Function = "subtract (12.6839425, multiply (%ElecPHEVSmart%, 3.333))";
+	}
+
+Function{
+	Name = NoPHEV; 
+	Function = "multiply (250000,%ElecPHEVSmart%)"; //racuna broj PHEV pp. 20000 km/PHEV*a, 5 km/KWhel
+	}
+	
+Function{
+	Name = CapacityPHEV; 
+	Function = "multiply (0.0033,%NoPHEV%)"; //racuna kapacitet prikljucka za PHEV u MW, pp 3.3 KW/vehicle
+	}
+	
+Function{
+	Name = BatteryPHEV; 
+	Function = "multiply (0.0000024,%NoPHEV%)"; //racuna energiju baterije od PHEV, pp. 24 KWh/vehicle
+	}
+
+Function{
+	Name = CinvPHEV; 
+	Function = "add(multiply (0.5, %CapacityPHEV%), multiply (0.0015,%NoPHEV%))"; //15000 Eur/vehicle, //0.5ME/MW of grid extension for PHEV connection
+	}
+/*Function{
+	Name = OutputPHEV; //
+	Function = "PHEV equipment";
+	}	*/
+Function{
+	Name = PeriodPHEV; 
+	Function = "20";
+	}
+Function{
+	Name = FOMPHEV; 
+	Function = "0";
+	}	
+	
+	//biomass in transport
+Parameter { //
+	Name = BioDiesel; //Input_BioDieselInput=
+	Min     = 0; //biramo koliko ce se TWh/a biodizela iz domace proizvodnje oduzeti od uvoznog fosilnog dizela
+    Ini     = 0;
+    Max     = 2.27948;
+    Step    = 2.27948;
+}
+
+Function{ //ovde uracunati troskovi gradnje fabrike!
+	Name = CinvBioDiesel; 
+	Function = 0; //"multiply (19.063, %BioDiesel%)"; //11.438 ME za 60000 t/a //
+	}
+///Function{
+//	Name = OutputBioDiesel; //
+//	Function = "BioDiesel plant";
+//	}	
+Function{
+	Name = PeriodBioDiesel; 
+	Function = "50";
+	}
+Function{
+	Name = FOMBioDiesel; 
+	Function = "2";
+	}	
+
+	
+	//conventional generation energy efficiency
+Parameter {
+	Name = newTPPsize;
+	Min     = 0; //biramo koliko ce se novih efikasnih tpp graditi na posojecoj mesavini biomase i lingita
+    Ini     = 0;
+    Max     = 700;
+    Step    = 700;
+}
+Parameter {
+	Name = oldTPPsize;
+	Min     = 1200; //biramo koliko ce se najvise starih neefikasnih tpp gasiti 1A3-6 + 2 Obrenovac + Kostolac 2920, 1A3-4 560
+    Ini     = 3936;
+    Max     = 3936;
+    Step    = 1000;
+}
+Parameter {
+	Name = newCHPsize;
+	Min     = 0; //biramo koliko ce se novih efikasnih CHp graditi
+    Ini     = 0;
+    Max     = 700;
+    Step    = 700;
+}
+Parameter {
+	Name = oldCHPsize;
+	Ini     = 350; //biramo koliko ce se starih neefikasnih CHp rusiti
+    Step    = 350;
+	Min = 0;
+	Max = 350;
+}
+Function {
+	Name = TPPmin; //minimum TPP input_pp_cap_minimum=
+	Function = "add (multiply(%newTPPsize%, 0.3), multiply(%oldTPPsize%,0.6))";
+}
+Function {
+	Name = PP; // input_cap_pp_el=
+	Function = "add(%newTPPsize%, %oldTPPsize%,%newCHPsize%,%oldCHPsize%)";
+}
+Function {
+	Name = CHP; //input_cap_chp3_el=
+	Function = "add(%newCHPsize%,%oldCHPsize%)";
+}
+Function {
+	Name = newTPPeta; // input_eff_pp_el=
+	Function = "divide(add (multiply(%newTPPsize%,0.44), multiply(%newCHPsize%,0.4), multiply(%oldTPPsize%,0.328), multiply(%oldCHPsize%,0.328)), %PP%)";
+}
+
+//electricity storage 
+
+Parameter {
+	Name = StorageP; //input_cap_pump_el= //input_cap_turbine_el= 1330 MW  ili 650 MW 
+	Ini = 650;
+	Max = 1330; //ovde bi trebalo diskretno realizovati ali onda mora GPSPSOCCHJ algoritam...
+	Min = 650;
+	Step = 650;
+}
+
+Function {
+	Name = StorageE;
+	Function = "add(152.65, multiply(0.09,%StorageP%))"; // //input_storage_pump_cap= 270 GWh ili  210 GWh
+}
+
+//transmission line capacity
+
+Parameter {
+	Name = Transmission; //input_max_imp_exp=
+	Min     = 3600; //biramo koliko ce se graditi MW novih VN dalekovoda ka susedima postojecih je 3600 MW
+    Ini     = 3600;
+    Max     = 5000;
+    Step    = 1000;
+}
+
+Function{
+	Name = CinvTransmission; 
+	Function = "multiply (0.13255, %Transmission%)"; // ME/MW za 331 km i 400 E/ MW*km
+	}
+/*Function{
+	Name = OutputTransmission; //
+	Function = "Transmission cost";
+	}	*/
+Function{
+	Name = PeriodTransmission; 
+	Function = "50";
+	}
+Function{
+	Name = FOMTransmission; 
+	Function = "1";
+	}	
+	
+//scenario sensitivity analysis
+Function{ Name = multiplication; 	Function = "0.6";	} //231 input_nordpool_mult_fac= multiplication 1.5
+Function{ Name = addprice; 	Function = "90";	} //237 input_import_bottleneck_addprice_factor= addprice 99
+
+//503 Input_Button_Price= Tech/Market New, 
+//601 input_Interest= interest 10% 
+Function{ Name = CO2price; 	Function = "30";	} //499 input_CO2_price= CO2price 0-30-50
+Function{ Name = ligniteprice; 	Function = "1.45";	}//427 input_fuel_price[1]= lignite 1.45
+Function{ Name = fuelprice; 	Function = "10.76";	}//429 input_fuel_price[2]= fueloil 10.76
+Function{ Name = naturalgasprice; 	Function = "4.87";	}//431 input_fuel_price[3]= naturalgas 4.87
+Function{ Name = biomassprice; 	Function = "2.66";	}//433 input_fuel_price[4]= biomass 2.66
+Function{ Name = petrolprice; 	Function = "16.2";	}//459 input_fuel_price[6]= petroljetpetrol 16.2
+Function{ Name = dieselprice; 	Function = "14.8";	}//891 input_fuel_price[5]= gasolinediesel 14.8
+Function{ Name = LPGprice; 	Function = "11.27";	}//1307 input_fuel_price[8]= LPG 11.27
+Function{ Name = drybiomassprice; 	Function = "2.5";	}//1187 input_fuel_price[10]= drybiomass 2.5
+Function{ Name = wetbiomassprice; 	Function = "2.5";	}//1189 input_fuel_price[11]= wetbiomass 2.5
+//
+
+  }
+
+OptimizationSettings{
+  MaxIte = 3000;
+  MaxEqualResults = 2;
+  WriteStepNumber = true;
+  UnitsOfExecution = 0;
+}
+
+Algorithm{
+  Main = GPSHookeJeeves;
+  //MultiStart = Uniform;
+  //Seed       = 1;
+  //NumberOfInitialPoint = 3;
+  MeshSizeDivider = 2;
+  InitialMeshSizeExponent = 0;
+  MeshSizeExponentIncrement = 1;
+  NumberOfStepReduction = 2;
+}
+
+/*Algorithm{
+  Main = GPSPSOCCHJ;
+  NeighborhoodTopology = vonNeumann;
+  NeighborhoodSize = 5;
+  NumberOfParticle = 10;
+  NumberOfGeneration = 10;
+  Seed = 1;
+  CognitiveAcceleration = 2.8;
+  SocialAcceleration = 1.3;
+  MaxVelocityGainContinuous = 0.5;
+  MaxVelocityDiscrete = 4;
+  ConstrictionGain = 0.5;
+  MeshSizeDivider = 2;
+  InitialMeshSizeExponent = 0;
+  MeshSizeExponentIncrement = 1;
+  NumberOfStepReduction = 4;
+}*/
